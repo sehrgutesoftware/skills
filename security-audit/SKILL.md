@@ -18,19 +18,27 @@ Refine from what you observe. Default assumptions:
 
 If the target application handles regulated data, financial transactions, or safety-critical operations, note that ASVS Level 3 rigor may be warranted and flag this in the report.
 
-## Process
+## Workflow
 
-### A. Inventory
+1. Perform reconnaissance (phases A–C below), writing findings to `SECURITY-AUDIT-RECON.md` in the project root using `resources/recon-template.md` as the structure. Fill every section; record "not determined" with a brief reason rather than omitting.
+2. Read `SECURITY-AUDIT-RECON.md` back into context before starting the assessment.
+3. Perform the assessment (phase D below), writing the final report to `SECURITY-AUDIT-REPORT.md` in the project root.
+
+If either file already exists, overwrite it — a re-invocation is a fresh audit.
+
+### Phases
+
+#### A. Inventory
 1. Architecture: components, tech stack, versions
 2. Trust boundaries
 3. External interfaces and attack surface (services, ports, protocols)
-4. Exposed API endpoints (and their auth requirements)
+4. Exposed API endpoints (with their auth requirements, inputs and outputs)
 5. Data inventory: PII, secrets, regulated data, and where they flow
 6. Third-party integrations (SSO providers, webhooks, SaaS APIs)
 7. Infrastructure and deployment: hosting, TLS termination, reverse proxy / WAF, environment isolation
 8. CI/CD posture: pipeline secrets, protected branches, artifact handling
 
-### B. Security controls
+#### B. Security controls
 9. Authentication mechanism(s)
 10. Authorization model (RBAC/ABAC, enforcement points)
 11. Session management: cookie flags, JWT handling, expiry, rotation
@@ -52,7 +60,7 @@ If the target application handles regulated data, financial transactions, or saf
 18. Error handling and information disclosure, including fail-secure resource cleanup on error paths (A10:2025)
 19. Cryptographic algorithms and key management
 
-### C. Frontend (if applicable)
+#### C. Frontend (if applicable)
 20. CSP, CORS, CSRF protections
 21. Security headers: HSTS, X-Frame-Options / `frame-ancestors`, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
 22. Cookie flags: `Secure`, `HttpOnly`, `SameSite`
@@ -60,7 +68,7 @@ If the target application handles regulated data, financial transactions, or saf
 24. Client-side token storage (localStorage vs. httpOnly cookie)
 25. XSS mitigations (framework escaping, `dangerouslySetInnerHTML` / equivalents)
 
-### D. Assessment
+#### D. Assessment
 26. Map observations from sections A–C against OWASP Top 10 categories. See `resources/owasp-top-10-2025.md`.
 27. Verify coverage against ASVS v5.0.0 Level 2 chapters (V1–V17). See `resources/owasp-asvs-l2-checklist.md`. Note any chapter that is not applicable and briefly justify.
 28. Assess data privacy implications alongside security gaps.
@@ -68,10 +76,19 @@ If the target application handles regulated data, financial transactions, or saf
 
 ## Result
 
+Write the final report to `SECURITY-AUDIT-REPORT.md` in the project root with the following structure:
+
+1. Architecture overview & threat model (summarized from recon)
+2. Findings table
+3. Recommendations
+4. Tooling recommendations & gaps
+
 ### Findings table
 
-| ID | Title | Severity | Location | OWASP category | ASVS chapter | Recommendation |
-|----|-------|----------|----------|----------------|--------------|----------------|
+| ID | Title | Severity | Location | OWASP category | ASVS chapter | Recon reference | Recommendation |
+|----|-------|----------|----------|----------------|--------------|-----------------|----------------|
+
+The "Recon reference" column cites the recon section that grounds the finding (e.g., `B10`, `C22`).
 
 ### Severity scale
 - **Critical**: remote unauthenticated compromise, mass data exposure, RCE, authentication bypass affecting all users.
