@@ -1,0 +1,9 @@
+{
+  "skills": [
+    {
+      "name": "security-audit",
+      "version": "1",
+      "files": ["security-audit/SKILL.md"]
+    }
+  ]
+}
