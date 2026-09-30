@@ -2,8 +2,14 @@
   "skills": [
     {
       "name": "security-audit",
-      "version": "1",
-      "files": ["security-audit/SKILL.md"]
+      "version": "2",
+      "files": [
+        "SKILL.md",
+        "resources/README.md",
+        "resources/owasp-top-10-2025.md",
+        "resources/owasp-asvs-l2-checklist.md",
+        "resources/cheat-sheets-index.md"
+      ]
     }
   ]
 }
