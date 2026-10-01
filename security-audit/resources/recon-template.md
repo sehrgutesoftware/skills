@@ -5,94 +5,167 @@ _Target: <project name or path>_
 
 ---
 
-## A. Inventory
+## Rule for all sections below
+
+Record facts, not verdicts. No adjectives about adequacy ("looks fine", "appears to", "mostly"). No judgments. Any evaluation belongs in the assessment phase (`SECURITY-AUDIT-REPORT.md`).
+
+---
+
+## Phase A — Project context
 
 ### A1. Architecture
-_Components, tech stack, versions. Include a text diagram if useful._
+_Components, tech stack, versions. Include a text diagram._
 
 ### A2. Trust boundaries
 _List each boundary and what data/control crosses it._
 
-### A3. External interfaces & attack surface
-_Services, ports, protocols exposed to untrusted networks._
+### A3. Exposed network services
+_Ports and protocols accepting connections (web server, DB, SSH, admin). Endpoint-level attack surface goes to B1._
 
-### A4. Exposed API endpoints
-_Table: method · path · auth required · inputs & outputs · brief purpose._
+| Service | Port | Protocol | Bound to | Exposed to |
+|---------|------|----------|----------|------------|
 
-### A5. Data inventory
-_PII, secrets, regulated data. Where stored, where transmitted._
+### A4. Data inventory
+_Classification of PII, secrets, regulated data, and where each lives._
 
-### A6. Third-party integrations
-_SSO, webhooks, SaaS APIs. What trust is granted to each._
+| Data class | Examples | Storage location | Transmitted to |
+|------------|----------|------------------|----------------|
 
-### A7. Infrastructure & deployment
+### A5. Third-party integrations
+
+| Service | Data handled | Trust relationship | Credentials source |
+|---------|--------------|---------------------|--------------------|
+
+### A6. Infrastructure & deployment
 _Hosting, TLS termination, reverse proxy / WAF, environment isolation._
 
-### A8. CI/CD posture
+### A7. CI/CD posture
 _Pipeline secrets, protected branches, artifact handling, signing._
 
 ---
 
-## B. Security controls
+## Phase B — Callsite inventory
 
-### B9. Authentication mechanisms
+For each table below: write "none found" if no instances. Every row must have a `file:line`. State in a one-line preamble which A items guided the search.
 
-### B10. Authorization model
-_RBAC/ABAC, enforcement points._
+### B1. API endpoints
 
-### B11. Session management
-_Cookie flags, JWT handling, expiry, rotation._
+_Guided by: <A items>._
 
-### B12. Secrets management
-_Env vars, vault, hardcoded values, `.env` in repo._
+| Method | Path | Handler file:line | Auth check | Inputs (query/body/header/path) | Outputs |
+|--------|------|-------------------|------------|---------------------------------|---------|
 
-### B13. Input validation & output encoding
-_Framework defaults vs. custom._
+### B2. Database queries
 
-### B14. Persistence layer
-_ORM / raw SQL, parameterization, connection strings._
+_Guided by: <A items>._
 
-### B15. File upload/download handling
+| file:line | Raw / ORM | User input bound? | Binding mechanism |
+|-----------|-----------|-------------------|-------------------|
 
-### B16. Resource-exhaustion & abuse protections
-_Address each sub-item from SKILL.md item 16 (rate limits, body size,
-timeouts, pagination, parser limits, decompression limits, ReDoS,
-bounded caches, connection pools). Mark N/A per sub-item if truly
-inapplicable._
+### B3. OS command / shell invocations
 
-### B17. Logging & monitoring
-_PII in logs, audit trail for sensitive actions._
+_Guided by: <A items>._
 
-### B18. Error handling & information disclosure
-_Fail-secure resource cleanup on error paths (A10:2025)._
+| file:line | Command source | Input source |
+|-----------|----------------|--------------|
 
-### B19. Cryptography & key management
+### B4. Deserialization & dynamic eval
 
----
+_Guided by: <A items>._
 
-## C. Frontend
-_Mark the whole section N/A if the application has no browser-facing UI._
+| file:line | Format (pickle/yaml/xml/eval) | Input source |
+|-----------|-------------------------------|--------------|
 
-### C20. CSP / CORS / CSRF
+### B5. File I/O
 
-### C21. Security headers
-_HSTS, X-Frame-Options / `frame-ancestors`, X-Content-Type-Options, Referrer-Policy, Permissions-Policy._
+_Guided by: <A items>._
 
-### C22. Cookie flags
-_`Secure`, `HttpOnly`, `SameSite`._
+| file:line | Operation (read/write/upload/download) | Path source |
+|-----------|----------------------------------------|-------------|
 
-### C23. Subresource Integrity
-_SRI for third-party scripts._
+### B6. Regex applied to user input
 
-### C24. Client-side token storage
-_localStorage vs. httpOnly cookie._
+_Guided by: <A items>._
 
-### C25. XSS mitigations
-_Framework escaping, `dangerouslySetInnerHTML` / equivalents._
+| file:line | Pattern | Input source |
+|-----------|---------|--------------|
+
+### B7. Outbound HTTP / RPC calls
+
+_Guided by: A5._
+
+| file:line | Destination | Auth | Timeout config |
+|-----------|-------------|------|-----------------|
+
+### B8. Authentication flows
+
+_Guided by: <A items>._
+
+| Flow (login/logout/reset/MFA/SSO) | Entry file:line | Credential handling | Persistence |
+|-----------------------------------|-----------------|---------------------|-------------|
+
+### B9. Session/token issuance & validation
+
+_Guided by: <A items>._
+
+| file:line | Token type | Issuance | Validation | Expiry | Revocation |
+|-----------|------------|----------|------------|--------|------------|
+
+### B10. Authorization checks
+
+_Guided by: <A items>._
+
+| file:line | Check type (role/ownership/attribute) | Enforcement point |
+|-----------|---------------------------------------|-------------------|
+
+### B11. Cryptographic operations
+
+_Guided by: <A items>._
+
+| file:line | Operation (encrypt/decrypt/hash/sign/random) | Algorithm | Key source |
+|-----------|----------------------------------------------|-----------|------------|
+
+### B12. Secrets access
+
+_Guided by: <A items>._
+
+| Location | Secret type | How fetched (env/vault/hardcoded/KMS) |
+|----------|-------------|---------------------------------------|
+
+### B13. Error handling sites
+
+_Guided by: <A items>._
+
+| file:line | Behavior on error | Resource cleanup |
+|-----------|-------------------|------------------|
+
+### B14. Logging statements with user data
+
+_Guided by: <A items>._
+
+| file:line | Logger | Fields logged |
+|-----------|--------|---------------|
+
+### B15. Frontend security configuration
+
+_Mark N/A if no frontend. Guided by: <A items>._
+
+Include rows for: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, each cookie's `Secure`/`HttpOnly`/`SameSite` flags, SRI usage on third-party scripts, DOM sinks (`innerHTML`, `dangerouslySetInnerHTML`, `document.write`, etc.).
+
+| Config | Location (file:line or header) | Value |
+|--------|--------------------------------|-------|
+
+### B16. Resource bounds
+
+_Guided by: <A items>._
+
+Include rows for: body size default, body size per-endpoint overrides, server request timeout, DB query timeout, outbound HTTP client timeout, pagination caps, parser depth/size limits (JSON/XML/YAML), decompression ratio limits, cache sizes, connection pool sizes.
+
+| Bound type | Location | Value |
+|------------|----------|-------|
 
 ---
 
 ## Coverage notes
-_Any section marked "not determined" — briefly note why (e.g., "no
-auth code found in repo — is auth handled by upstream proxy?"). This
-list drives the "Recommendations" section of the final report._
+
+_Any A or B section marked "none found" or "not determined" — briefly note why (e.g., "B3: no OS command invocations found via grep for `subprocess`, `os.system`, `exec*`"). This list drives the "Recommendations" section of the final report._
